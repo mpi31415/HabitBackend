@@ -1,5 +1,6 @@
 from main import *
 
+
 @app.route('/')
 def index():
     return "hello"
@@ -33,7 +34,7 @@ def login_user():
     return make_response('could not verify2', 401, {'Authentication': '"login required"'})
 
 
-@app.route('/users', methods=['GET'])
+@app.route('/get/all_users', methods=['GET'])
 def get_all_users():
     users = Users.query.all()
     result = []
@@ -63,4 +64,3 @@ def get_progress(current_user):
         output.append(progress)
 
     return jsonify({'progress': output})
-
