@@ -12,53 +12,11 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///auth.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db = SQLAlchemy(app)
 
-
-class Users(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    public_id = db.Column(db.Integer)
-    name = db.Column(db.String(50))
-    password = db.Column(db.String(50))
-    admin = db.Column(db.Boolean)
-
-
-class Progress(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    xp = db.Column(db.String(50), unique=True, nullable=False)
-    coins = db.Column(db.String(50), unique=True, nullable=False)
-    cards = db.Column(db.String(50), nullable=False)
-    win_loss_draw = db.Column(db.String(50))
-    goals = db.Column(db.Integer)
-
-class Goals(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    description = db.Column(db.String(50), unique=True, nullable=False)
-    duration = db.Column(db.Integer, unique=True, nullable=False)
-
+from models import *
 
 db.create_all()
 
-
-def token_required(f):
-    @wraps(f)
-    def decorator(*args, **kwargs):
-        token = None
-        if 'x-access-tokens' in request.headers:
-            token = request.headers['x-access-tokens']
-
-        if not token:
-            return jsonify({'message': 'a valid token is missing'})
-        try:
-            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
-            current_user = Users.query.filter_by(public_id=data['public_id']).first()
-        except:
-            return jsonify({'message': 'token is invalid'})
-
-        return f(current_user, *args, **kwargs)
-
-    return decorator
-
+from authentication import token_required
 
 @app.route('/')
 def index():
@@ -108,9 +66,9 @@ def get_all_users():
     return jsonify({'users': result})
 
 
-#@app.route('/book', methods=['POST'])
-#@token_required
-#def create_book(current_user):
+# @app.route('/book', methods=['POST'])
+# @token_required
+# def create_book(current_user):
 #    data = request.get_json()
 #
 #    new_books = Books(name=data['name'], Author=data['Author'], Publisher=data['Publisher'],
@@ -137,16 +95,16 @@ def get_progress(current_user):
     return jsonify({'progress': output})
 
 
-#@app.route('/books/<book_id>', methods=['DELETE'])
-#@token_required
-#def delete_book(current_user, book_id):
- #   book = Books.query.filter_by(id=book_id, user_id=current_user.id).first()
-  #  if not book:
-   #     return jsonify({'message': 'book does not exist'})
+# @app.route('/books/<book_id>', methods=['DELETE'])
+# @token_required
+# def delete_book(current_user, book_id):
+#   book = Books.query.filter_by(id=book_id, user_id=current_user.id).first()
+#  if not book:
+#     return jsonify({'message': 'book does not exist'})
 
-    #db.session.delete(book)
-    #db.session.commit()
-    #return jsonify({'message': 'Book deleted'})
+# db.session.delete(book)
+# db.session.commit()
+# return jsonify({'message': 'Book deleted'})
 
 
 if __name__ == '__main__':
